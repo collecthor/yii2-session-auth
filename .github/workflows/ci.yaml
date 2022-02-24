@@ -1,0 +1,59 @@
+name: Continous integration
+on: [push, pull_request]
+jobs:
+  cs:
+    name: Check code style
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+      - name: Test code style
+        run: vendor/bin/ecs
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['8.1']
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: pcov
+          extensions: mbstring, curl, json, pdo-sqlite
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+      - name: Cache dependencies
+        uses: actions/cache@v1
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ matrix.php }}-composer-${{ hashFiles('**/composer.json') }}
+          restore-keys: ${{ matrix.php }}-composer-
+      - name: Install dependencies
+        run: composer install --prefer-dist
+      - name: Run psalm
+        run: vendor/bin/psalm
+  release:
+    name: Automated release
+    needs: [test, cs]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '16.x'
+      - run: >
+          npx
+          -p "@semantic-release/commit-analyzer"
+          -p "@semantic-release/release-notes-generator"
+          -p conventional-changelog-conventionalcommits
+          -p semantic-release
+          -- semantic-release
+          env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

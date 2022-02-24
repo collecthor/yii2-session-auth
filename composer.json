@@ -1,0 +1,34 @@
+{
+    "name": "collecthor/yii2-session-auth",
+    "description": "Session authentication for your API",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Collecthor\\Yii2SessionAuth\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Sam Mousa",
+            "email": "sam@mousa.nl"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://asset-packagist.org"
+        }
+    ],
+    "require-dev": {
+        "yiisoft/yii2": "^2.0",
+        "vimeo/psalm": "^4.21",
+        "symplify/easy-coding-standard": "^10.1"
+    },
+    "config": {
+        "allow-plugins": {
+            "yiisoft/yii2-composer": true,
+            "composer/package-versions-deprecated": true
+        }
+    }
+}
