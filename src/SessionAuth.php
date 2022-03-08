@@ -6,6 +6,7 @@ namespace Collecthor\Yii2SessionAuth;
 
 use Closure;
 use yii\filters\auth\AuthInterface;
+use yii\web\BadRequestHttpException;
 use yii\web\IdentityInterface;
 use yii\web\Request;
 use yii\web\Response;
@@ -44,8 +45,20 @@ class SessionAuth implements AuthInterface
              * @psalm-suppress MixedAssignment
              */
             $userId = $this->session->get($user->idParam);
+
+            $enableCsrfValidation = $request->enableCookieValidation;
+            $request->enableCsrfValidation = true;
+            $validationResult = $request->validateCsrfToken();
+            $request->enableCsrfValidation = $enableCsrfValidation;
+
             // Abort the session, no need to update it.
             session_abort();
+
+            if (!$validationResult) {
+                throw new BadRequestHttpException('When using session auth a CSRF token header is required');
+            }
+
+
 
             // Extract the user from the session.
             if (isset($userId) && (is_string($userId) || is_int($userId))) {
