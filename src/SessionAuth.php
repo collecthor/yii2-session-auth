@@ -54,11 +54,9 @@ class SessionAuth implements AuthInterface
             // Abort the session, no need to update it.
             session_abort();
 
-            if (!$validationResult) {
+            if (! $validationResult) {
                 throw new BadRequestHttpException('When using session auth a CSRF token header is required');
             }
-
-
 
             // Extract the user from the session.
             if (isset($userId) && (is_string($userId) || is_int($userId))) {

@@ -23,12 +23,16 @@
     "require-dev": {
         "yiisoft/yii2": "^2.0",
         "vimeo/psalm": "^4.21",
-        "symplify/easy-coding-standard": "^10.1"
+        "symplify/easy-coding-standard": "^10.1",
+        "captainhook/captainhook": "^5.10",
+        "captainhook/plugin-composer": "^5.3",
+        "ramsey/conventional-commits": "^1.3"
     },
     "config": {
         "allow-plugins": {
             "yiisoft/yii2-composer": true,
-            "composer/package-versions-deprecated": true
+            "composer/package-versions-deprecated": true,
+            "captainhook/plugin-composer": true
         }
     }
 }
