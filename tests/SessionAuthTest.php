@@ -31,6 +31,7 @@ class SessionAuthTest extends TestCase
     {
         return new Response(['charset' => 'utf-8']);
     }
+
     private function getUser(IdentityInterface|null $identity = null): User
     {
         $user = $this->getMockBuilder(User::class)->getMock();
