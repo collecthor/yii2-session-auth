@@ -92,8 +92,8 @@ class SessionAuth implements AuthInterface
             $identity = $this->identityFinder->findIdentity($userId);
             // Check if identity is set and login
             if (isset($identity) && $user->login($identity)) {
-                // Remove CSRF cookie that might be set by the login flow
-                $response->cookies->remove($request->csrfParam, false);
+                // Remove (csrf) cookies that might be set by the login flow
+                $response->getCookies()->removeAll();
 
                 if (isset($this->afterLogin)) {
                     ($this->afterLogin)($user, $snapshot);

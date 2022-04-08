@@ -27,6 +27,10 @@ class SessionAuthTest extends TestCase
 
     private const CSRF_PARAM = '_csrf';
 
+    private function getResponse(): Response
+    {
+        return new Response(['charset' => 'utf-8']);
+    }
     private function getUser(IdentityInterface|null $identity = null): User
     {
         $user = $this->getMockBuilder(User::class)->getMock();
@@ -121,8 +125,7 @@ class SessionAuthTest extends TestCase
         $subject = new SessionAuth($identityFinder, $security, $session);
 
         $user = $this->getUser();
-        $response = $this->getMockBuilder(Response::class)->getMock();
-        self::assertNull($subject->authenticate($user, $this->getRequest(), $response));
+        self::assertNull($subject->authenticate($user, $this->getRequest(), $this->getResponse()));
     }
 
     public function testNoCsrfHeader(): void
@@ -136,9 +139,7 @@ class SessionAuthTest extends TestCase
 
         $subject = new SessionAuth($identityFinder, $security, $session);
 
-        $response = $this->getMockBuilder(Response::class)->getMock();
-
-        self::assertSame(null, $subject->authenticate($user, $this->getRequest(), $response));
+        self::assertSame(null, $subject->authenticate($user, $this->getRequest(), $this->getResponse()));
     }
 
     public function testRandomCsrfHeader(): void
@@ -154,10 +155,8 @@ class SessionAuthTest extends TestCase
 
         $request = $this->getRequest('abc');
 
-        $response = $this->getMockBuilder(Response::class)->getMock();
-
         $this->expectException(UnauthorizedHttpException::class);
-        $subject->authenticate($user, $request, $response);
+        $subject->authenticate($user, $request, $this->getResponse());
     }
 
     /**
@@ -179,9 +178,7 @@ class SessionAuthTest extends TestCase
 
         $subject = new SessionAuth($identityFinder, $security, $session);
 
-        $response = $this->getMockBuilder(Response::class)->getMock();
-
-        self::assertSame($identity, $subject->authenticate($user, $request, $response));
+        self::assertSame($identity, $subject->authenticate($user, $request, $this->getResponse()));
     }
 
     public function testNoIdInSession(): void
@@ -197,16 +194,14 @@ class SessionAuthTest extends TestCase
 
         $subject = new SessionAuth($identityFinder, $security, $session);
 
-        $response = $this->getMockBuilder(Response::class)->getMock();
-
-        self::assertSame(null, $subject->authenticate($user, $request, $response));
+        self::assertSame(null, $subject->authenticate($user, $request, $this->getResponse()));
     }
 
     public function useCookieAndMethodProvider(): iterable
     {
-        $useCookiesOption = [true, false];
+        $useCookiesOptions = [true, false];
         $methods = ['GET', 'HEAD', 'OPTIONS', 'PUT', 'POST', 'DELETE'];
-        foreach ($useCookiesOption as $useCookiesOption) {
+        foreach ($useCookiesOptions as $useCookiesOption) {
             foreach ($methods as $method) {
                 yield [$useCookiesOption, $method];
             }
@@ -234,7 +229,6 @@ class SessionAuthTest extends TestCase
         $session = $this->getSession(153, $csrfToken);
 
         $subject = new SessionAuth($identityFinder, $security, $session, \Closure::fromCallable($callback));
-        $response = $this->getMockBuilder(Response::class)->getMock();
-        self::assertNotNull($subject->authenticate($user, $request, $response));
+        self::assertNotNull($subject->authenticate($user, $request, $this->getResponse()));
     }
 }
