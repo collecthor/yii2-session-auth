@@ -30,6 +30,8 @@ jobs:
         run: vendor/bin/psalm
       - name: Test code style
         run: vendor/bin/ecs
+      - name: Test code
+        run: vendor/bin/phpunit
   release:
     name: Automated release
     needs: [test]

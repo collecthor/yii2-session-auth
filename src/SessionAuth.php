@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Collecthor\Yii2SessionAuth;
 
 use Closure;
+use yii\base\Security;
 use yii\filters\auth\AuthInterface;
 use yii\web\BadRequestHttpException;
 use yii\web\IdentityInterface;
@@ -23,9 +24,39 @@ class SessionAuth implements AuthInterface
      */
     public function __construct(
         private readonly IdentityFinderInterface $identityFinder,
+        private readonly Security $security,
         private readonly Session $session,
         private readonly null|Closure $afterLogin = null
     ) {
+    }
+
+    /**
+     * This is a re-implementation of Yii's default implementation.
+     * It explicitly prevents any regeneration.
+     * It requires CSRF for non state changing requests.
+     * @return bool whether to continue with authorization
+     */
+    private function validateCSRFToken(Request $request, array $sessionData, Response $response): bool
+    {
+        $clientSuppliedToken = $request->getCsrfTokenFromHeader();
+
+        /**
+         * @psalm-suppress DocblockTypeContradiction
+         */
+        if (! isset($clientSuppliedToken)) {
+            return false;
+        }
+
+        /** @var string|null $token */
+        $token = $request->enableCsrfCookie
+            ? $request->getCookies()->getValue($request->csrfParam)
+            : $sessionData[$request->csrfParam] ?? null;
+
+        if (isset($token)
+            && hash_equals($this->security->unmaskToken($token), $this->security->unmaskToken($clientSuppliedToken))) {
+            return true;
+        }
+        $this->handleFailure($response);
     }
 
     /**
@@ -33,45 +64,40 @@ class SessionAuth implements AuthInterface
      * @param Request $request
      * @param Response $response
      * @throws UnauthorizedHttpException
+     * @throws BadRequestHttpException
      * @psalm-suppress ImplementedReturnTypeMismatch
      */
     public function authenticate($user, $request, $response): IdentityInterface|null
     {
         if ($this->session->getHasSessionId()) {
             $this->session->open();
-
             $snapshot = iterator_to_array($this->session->getIterator());
-            /**
-             * @psalm-suppress MixedAssignment
-             */
-            $userId = $this->session->get($user->idParam);
-
-            $enableCsrfValidation = $request->enableCookieValidation;
-            $request->enableCsrfValidation = true;
-            $validationResult = $request->validateCsrfToken();
-            $request->enableCsrfValidation = $enableCsrfValidation;
-
             // Abort the session, no need to update it.
             session_abort();
 
-            if (! $validationResult) {
-                throw new BadRequestHttpException('When using session auth a CSRF token header is required');
+            if (! isset($snapshot[$user->idParam]) || ! (is_string($snapshot[$user->idParam]) || is_int($snapshot[$user->idParam]))) {
+                // No user id in the session so this authorization method is not valid applicable.
+                return null;
             }
+
+            if (! $this->validateCSRFToken($request, $snapshot, $response)) {
+                return null;
+            }
+
+            /**
+             * @psalm-suppress MixedAssignment
+             */
+            $userId = $snapshot[$user->idParam];
 
             // Extract the user from the session.
-            if (isset($userId) && (is_string($userId) || is_int($userId))) {
-                $identity = $this->identityFinder->findIdentity($userId);
-
-                // Check if identity is set and login
-                if (isset($identity) && $user->login($identity)) {
-                    if (isset($this->afterLogin)) {
-                        ($this->afterLogin)($user, $snapshot);
-                    }
-                    return $identity;
+            $identity = $this->identityFinder->findIdentity($userId);
+            // Check if identity is set and login
+            if (isset($identity) && $user->login($identity)) {
+                if (isset($this->afterLogin)) {
+                    ($this->afterLogin)($user, $snapshot);
                 }
+                return $identity;
             }
-
-            throw new UnauthorizedHttpException();
         }
         return null;
     }
@@ -85,6 +111,6 @@ class SessionAuth implements AuthInterface
 
     public function handleFailure($response): never
     {
-        throw new UnauthorizedHttpException();
+        throw new UnauthorizedHttpException("You must supply a valid CSRF token");
     }
 }

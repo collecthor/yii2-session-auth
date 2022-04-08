@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 // ecs.php
-use ParametersWithAttributes;
 use PhpCsFixer\Fixer\ArrayNotation\ArraySyntaxFixer;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symplify\EasyCodingStandard\ValueObject\Option;
@@ -12,7 +11,7 @@ use Symplify\EasyCodingStandard\ValueObject\Set\SetList;
 return static function (ContainerConfigurator $containerConfigurator): void {
     $parameters = $containerConfigurator->parameters();
 
-    $parameters->set(Option::PATHS, [__DIR__ . '/src', __FILE__]);
+    $parameters->set(Option::PATHS, [__DIR__ . '/src', __FILE__, __DIR__ . '/tests']);
     $parameters->set(Option::PARALLEL, true);
     $parameters->set(Option::LINE_ENDING, "\n");
     $parameters->set(Option::INDENTATION, 'spaces');
