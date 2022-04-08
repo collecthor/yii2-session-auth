@@ -82,7 +82,7 @@ class SessionAuthTest extends TestCase
         if (isset($csrfCookie)) {
             $cookie = new Cookie();
             $cookie->name = self::CSRF_PARAM;
-            $cookie->value = $security->maskToken($csrfCookie);
+            $cookie->value = $csrfCookie;
             $cookieCollection = new CookieCollection();
             $cookieCollection->add($cookie);
             $request->expects($request->enableCsrfCookie ? $this->atLeastOnce() : $this->never())->method('getCookies')->willReturn($cookieCollection);
@@ -101,7 +101,7 @@ class SessionAuthTest extends TestCase
         }
 
         if (isset($csrfToken)) {
-            $data[self::CSRF_PARAM] = (new Security())->maskToken($csrfToken);
+            $data[self::CSRF_PARAM] = $csrfToken;
         }
 
         $session->expects(empty($data) ? $this->never() : $this->once())

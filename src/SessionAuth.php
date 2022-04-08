@@ -52,8 +52,7 @@ class SessionAuth implements AuthInterface
             ? $request->getCookies()->getValue($request->csrfParam)
             : $sessionData[$request->csrfParam] ?? null;
 
-        if (isset($token)
-            && hash_equals($this->security->unmaskToken($token), $this->security->unmaskToken($clientSuppliedToken))) {
+        if (isset($token) && hash_equals($token, $this->security->unmaskToken($clientSuppliedToken))) {
             return true;
         }
         $this->handleFailure($response);
