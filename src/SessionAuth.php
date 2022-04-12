@@ -33,13 +33,15 @@ class SessionAuth implements AuthInterface
     /**
      * This is a re-implementation of Yii's default implementation.
      * It explicitly prevents any regeneration.
-     * It requires CSRF for non state changing requests.
      * @return bool whether to continue with authorization
      */
     private function validateCSRFToken(Request $request, array $sessionData, Response $response): bool
     {
         $clientSuppliedToken = $request->getCsrfTokenFromHeader();
 
+        if ($request->getIsGet() || $request->getIsHead() || $request->getIsOptions()) {
+            return true;
+        }
         /**
          * @psalm-suppress DocblockTypeContradiction
          */
