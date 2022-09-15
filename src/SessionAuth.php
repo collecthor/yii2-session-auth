@@ -117,4 +117,13 @@ class SessionAuth implements AuthInterface
     {
         throw new UnauthorizedHttpException("You must supply a valid CSRF token");
     }
+
+    /**
+     * This function is only here to work around this bug: https://github.com/yiisoft/yii2/issues/19581
+     * @return bool
+     */
+    protected function isActive(): bool
+    {
+        return true;
+    }
 }

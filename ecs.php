@@ -4,25 +4,22 @@ declare(strict_types=1);
 
 // ecs.php
 use PhpCsFixer\Fixer\ArrayNotation\ArraySyntaxFixer;
-use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
-use Symplify\EasyCodingStandard\ValueObject\Option;
+use PhpCsFixer\Fixer\Import\NoUnusedImportsFixer;
 use Symplify\EasyCodingStandard\ValueObject\Set\SetList;
 
-return static function (ContainerConfigurator $containerConfigurator): void {
-    $parameters = $containerConfigurator->parameters();
+return static function (\Symplify\EasyCodingStandard\Config\ECSConfig $ecsConfig): void {
+    $ecsConfig->parallel();
+    // Paths
+    $ecsConfig->paths([
+        __DIR__ . '/src', __DIR__ . '/tests', __DIR__ . '/ecs.php'
+    ]);
 
-    $parameters->set(Option::PATHS, [__DIR__ . '/src', __FILE__, __DIR__ . '/tests']);
-    $parameters->set(Option::PARALLEL, true);
-    $parameters->set(Option::LINE_ENDING, "\n");
-    $parameters->set(Option::INDENTATION, 'spaces');
+    $ecsConfig->import(SetList::PSR_12);
+    $ecsConfig->import(SetList::STRICT);
+    $ecsConfig->import(SetList::SPACES);
 
-    // A. full sets
-    $containerConfigurator->import(SetList::PSR_12);
-    $containerConfigurator->import(SetList::STRICT);
-    $containerConfigurator->import(SetList::SPACES);
-
-    // B. standalone rule
-    $services = $containerConfigurator->services();
-    $services->set(ArraySyntaxFixer::class)
-        ->call('configure', [[    'syntax' => 'short' ]]);
+    $ecsConfig->ruleWithConfiguration(ArraySyntaxFixer::class, [
+        'syntax' => 'short',
+    ]);
+    $ecsConfig->rule(NoUnusedImportsFixer::class);
 };

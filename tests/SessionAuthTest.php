@@ -10,7 +10,6 @@ use PHPUnit\Framework\TestCase;
 use yii\base\Security;
 use yii\web\Cookie;
 use yii\web\CookieCollection;
-use yii\web\HeaderCollection;
 use yii\web\IdentityInterface;
 use yii\web\Request;
 use yii\web\Response;
