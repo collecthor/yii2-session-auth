@@ -122,7 +122,7 @@ class SessionAuth implements AuthInterface
      * This function is only here to work around this bug: https://github.com/yiisoft/yii2/issues/19581
      * @return bool
      */
-    protected function isActive(): bool
+    public function isActive(): bool
     {
         return true;
     }
